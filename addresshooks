@@ -1,0 +1,38 @@
+#!/bin/bash
+# Example addressing hook.
+#
+# Addressing hooks are run with the "start" argument after an addressing has
+# acquired an address and with the "stop" argument before it is destroyed.
+#
+# Environment variables:
+#   ID: addressing ID
+#   IP: The local IP for this addressing
+#   PREFIX_LENGTH: The size of the local network
+#   GATEWAY: The next router
+#   IFNAME: Name of the interface this addressing is associated with
+#   LEG_ID: ID of the leg that this addressing is for
+
+start () {
+    remove 2> /dev/null
+    ip route add $GATEWAY dev $IFNAME src $IP table 2000 ||:
+}
+stop () {
+    ip route del $GATEWAY dev $IFNAME src $IP table 2000 ||:
+}
+remove () {
+    true
+}
+
+# Avoid changing anything below here.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
